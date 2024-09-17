@@ -43,7 +43,7 @@ public class RunTestCasesService {
 
         String urlWithParams = builder.toUriString();
         BotRequest botRequest = new BotRequest(model,
-                List.of(new Message("system", tcResponse+" from the above table generate json request bodies for test case number 3")),
+                List.of(new Message("system", tcResponse+" from the above table generate json request bodies for all test cases")),
                 maxCompletions,
                 temperature,
                 maxTokens,

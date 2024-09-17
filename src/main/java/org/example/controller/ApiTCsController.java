@@ -61,8 +61,19 @@ public class ApiTCsController {
                 .queryParam("api-version", "2023-05-15");
 
         String urlWithParams = builder.toUriString();
+        StringBuilder sb = new StringBuilder();
+        sb.append("Here is a sample JSON request body for a REST API:\n");
+        sb.append(request);
+        sb.append("\n\nI want you to generate a comprehensive list of all possible values (both valid and invalid) for each field in this JSON request body.");
+        sb.append("For each test case, only one field should be invalid at a time, while all other fields should be valid. This will help isolate which field is causing a failure.");
+        sb.append("\nMake sure to cover all positive and negative test cases for thorough testing of the REST API.");
+        sb.append("\n\nEach row in the list should represent a unique test case with different values for the fields.");
+        sb.append("\nThe table should have columns for each field, and each row should contain values for all fields in that specific test case.");
+        sb.append("\n\nNote: If I explicitly ask to exclude a specific field, do not generate test cases for it.");
+        sb.append(" give top 10 test cases");
+
         BotRequest botRequest = new BotRequest(model,
-                List.of(new Message("system", request + " Generate importrant field specifications table for above api.  Don't change the field - id in request. String char limit min = 5 max = 20")),
+                List.of(new Message("system", sb.toString())),
                 maxCompletions,
                 temperature,
                 maxTokens,

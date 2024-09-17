@@ -1,0 +1,1 @@
+INSERT INTO credentials (id,username,password) VALUE ('1','tanya','tg1');

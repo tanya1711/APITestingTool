@@ -1,0 +1,6 @@
+org\example\controller\BotController.class
+org\example\Main.class
+org\example\model\response\BotResponse$Choice.class
+org\example\model\request\BotRequest.class
+org\example\model\request\Message.class
+org\example\model\response\BotResponse.class

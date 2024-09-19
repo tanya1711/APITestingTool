@@ -1,11 +1,13 @@
 package org.example.controller;
 
+import com.fasterxml.jackson.databind.util.JSONPObject;
 import org.example.model.request.BotRequest;
 import org.example.model.request.Message;
 import org.example.model.response.BotResponse;
 import org.example.service.ContentService;
 import org.example.service.GenerateTestCasesService;
 import org.example.service.RunTestCasesService;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -16,16 +18,17 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
 public class ApiTCsController {
 
     @Autowired
-    private GenerateTestCasesService generateTestCasesService;
+    private RunTestCasesService runTestCasesService;
 
     @Autowired
-    private RunTestCasesService runTestCasesService;
+    private GenerateTestCasesService generateTestCasesService;
 
     @Autowired
     private RestTemplate restTemplate;
@@ -53,36 +56,16 @@ public class ApiTCsController {
 
 
     @PostMapping(value = "/requestFromCurl")
-    public ResponseEntity<?> getRequestFromCurl(@RequestBody String curlRequest) throws IOException {
-        String request = generateTestCasesService.getRequestBodyFromCurl(curlRequest);
-        System.out.println(request);
-        String url = baseUrl + "openai/deployments/" + deploymentName + "/chat/completions";
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
-                .queryParam("api-version", "2023-05-15");
+    public ResponseEntity<?> getRequestFromCurl(@RequestBody String curlRequest) throws IOException, InterruptedException {
+        List<String> tcRequestBodies = generateTestCasesService.generateTestCasesForCurl(curlRequest);
+        List<String> answer = new ArrayList<>();
+        for (int i = 0; i < tcRequestBodies.size(); i++) {
+            String s = runTestCasesService.runTestApi(curlRequest, tcRequestBodies.get(i));
+            answer.add(s);
+        }
 
-        String urlWithParams = builder.toUriString();
-        StringBuilder sb = new StringBuilder();
-        sb.append("Here is a sample JSON request body for a REST API:\n");
-        sb.append(request);
-        sb.append("\n\nI want you to generate a comprehensive list of all possible values (both valid and invalid) for each field in this JSON request body.");
-        sb.append("For each test case, only one field should be invalid at a time, while all other fields should be valid. This will help isolate which field is causing a failure.");
-        sb.append("\nMake sure to cover all positive and negative test cases for thorough testing of the REST API.");
-        sb.append("\n\nEach row in the list should represent a unique test case with different values for the fields.");
-        sb.append("\nThe table should have columns for each field, and each row should contain values for all fields in that specific test case.");
-        sb.append("\n\nNote: If I explicitly ask to exclude a specific field, do not generate test cases for it.");
-        sb.append(" give top 10 test cases");
-
-        BotRequest botRequest = new BotRequest(model,
-                List.of(new Message("system", sb.toString())),
-                maxCompletions,
-                temperature,
-                maxTokens,
-                deploymentName);
-
-        BotResponse response = restTemplate.postForObject(urlWithParams, botRequest, BotResponse.class);
-        String testCases = response.getChoices().get(0).getMessage().getContent();
-        System.out.println(testCases);
-        String s = runTestCasesService.generateRequestBodiesFromTCs(testCases);
-        return ResponseEntity.ok(s);
+        return ResponseEntity.ok(answer);
     }
+
+
 }

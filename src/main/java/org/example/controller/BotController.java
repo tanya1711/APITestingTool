@@ -5,7 +5,7 @@ import org.example.model.request.BotRequest;
 import org.example.model.request.Message;
 import org.example.model.response.BotResponse;
 import org.example.service.ContentService;
-import org.example.service.GenerateTestCasesService;
+import org.example.service.RunTestCasesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
@@ -42,7 +42,7 @@ public class BotController {
     @Autowired
     private ContentService contentService;
     @Autowired
-    private GenerateTestCasesService generateTestCasesService;
+    private RunTestCasesService runTestCasesService;
 
     @PostMapping("/chat")
     public Object chat(@RequestBody ApiRequest prompt) throws IOException, InterruptedException {

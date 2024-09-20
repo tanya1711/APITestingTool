@@ -74,11 +74,13 @@ public class RunTestCasesService {
 
     }
 
-    public String runTestApi(String curl, String request) throws IOException {
-        verifyRequestJson(request);
+    public String runTestApi(String curl, Object request) throws IOException {
+        String testCaseString = request.toString();
+        System.out.println(testCaseString);
+        verifyRequestJson(testCaseString);
         String url = extractUrl(curl);
         Map<String, String> headers = extractHeaders(curl);
-        return sendRequest(url, request, headers);
+        return sendRequest(url, testCaseString, headers);
     }
 
 

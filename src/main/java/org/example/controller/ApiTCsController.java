@@ -57,17 +57,11 @@ public class ApiTCsController {
     private ContentService contentService;
 
 
-//    @PostMapping(value = "/requestFromCurl")
-//    public ResponseEntity<?> getRequestFromCurl(@RequestBody String curlRequest) throws IOException, InterruptedException {
-//        List<String> tcRequestBodies = generateTestCasesService.generateTestCasesForCurl(curlRequest);
-//        List<String> answer = new ArrayList<>();
-//        for (int i = 0; i < tcRequestBodies.size(); i++) {
-//            String s = runTestCasesService.runTestApi(curlRequest, tcRequestBodies.get(i));
-//            answer.add(s);
-//        }
-
-//        return ResponseEntity.ok(answer);
-//    }
+    @PostMapping(value = "/requestFromCurl")
+    public ResponseEntity<?> getRequestFromCurl(@RequestBody String curlRequest) throws IOException, InterruptedException {
+        List<String> tcRequestBodies = generateTestCasesService.generateTestCasesForCurl(curlRequest);
+        return ResponseEntity.ok(tcRequestBodies);
+    }
 
     @PostMapping(value = "/runTestCase")
     public ResponseEntity<?> generateResponse(@RequestBody TestData testData) throws IOException, InterruptedException {

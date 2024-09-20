@@ -70,6 +70,7 @@ public class GenerateTestCasesService {
 
 
     public String generateRequestBodiesFromTCs(String tcResponse) {
+        System.out.println(tcResponse);
         try {
             String url = baseUrl + "openai/deployments/" + deploymentName + "/chat/completions";
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
@@ -77,7 +78,7 @@ public class GenerateTestCasesService {
 
             String urlWithParams = builder.toUriString();
             BotRequest botRequest = new BotRequest(model,
-                    List.of(new Message("system", tcResponse + " from the above table generate json request bodies for all test cases")),
+                    List.of(new Message("system", tcResponse + " from the above table row generate a json request body for this test cases. Here is a sample request body to refer the nodes of API ")),
                     maxCompletions,
                     temperature,
                     maxTokens,
@@ -93,13 +94,14 @@ public class GenerateTestCasesService {
 
     public List<String> generateTestCasesForCurl(String curl) {
         String request = getRequestBodyFromCurl(curl);
+        System.out.println(request);
         String url = baseUrl + "openai/deployments/" + deploymentName + "/chat/completions";
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
                 .queryParam("api-version", "2023-05-15");
 
         String urlWithParams = builder.toUriString();
         StringBuilder sb = new StringBuilder();
-        sb.append("Here is a sample JSON request body for a recruiter registration API. API is used to register a new recruiter to our portal. Email domain should be mailsac and name max char limit is 10\n");
+        sb.append("Here is a sample JSON request body for the data entry  API. This API is to register a new recruiter to our platform. For every test phoneNumber is equal to 2030219322 and email equal to testrecruiter_12911229@mailsac.com.  \n");
         sb.append(request);
         sb.append("\n\nI want you to generate a comprehensive list of all possible values (both valid and invalid) for each field in this JSON request body.");
         sb.append("For each test case, only one field should be invalid at a time, while all other fields should be valid. This will help isolate which field is causing a failure.");
@@ -107,7 +109,7 @@ public class GenerateTestCasesService {
         sb.append("\n\nEach row in the list should represent a unique test case with different values for the fields.");
         sb.append("\nThe table should have columns for each field, and each row should contain values for all fields in that specific test case.");
         sb.append("\n\nNote: If I explicitly ask to exclude a specific field, do not generate test cases for it.");
-        sb.append(" give top 10 test cases");
+//        sb.append(" give top 5 test cases");
 
         BotRequest botRequest = new BotRequest(model,
                 List.of(new Message("system", sb.toString())),
@@ -118,30 +120,31 @@ public class GenerateTestCasesService {
 
         BotResponse response = restTemplate.postForObject(urlWithParams, botRequest, BotResponse.class);
         String testCases = response.getChoices().get(0).getMessage().getContent();
-//        Thread.sleep(8000);
-        String s = generateRequestBodiesFromTCs(testCases);
-        if (s == null) {
-            return new ArrayList<>();
+        List<String> rows = storeTableRowsToList(testCases);
+        List<String> requestBodies = new ArrayList<>();
+        for (int i = 2; i < rows.size(); i++) {
+            String s = generateRequestBodiesFromTCs(rows.get(0) + "\n" + rows.get(i));
+            requestBodies.add(s);
+//            System.out.println(s);
         }
-
-        return parseTcFromGptResponse(s);
+        System.out.println(requestBodies);
+        return requestBodies;
     }
 
-    public List<String> parseTcFromGptResponse(String gptResponse) {
-        List<String> requestBodies = new ArrayList<>();
-        System.out.println("gpt response");
-        System.out.println(gptResponse);
-        gptResponse = gptResponse.replaceAll("```", "").trim();
-        String[] jsonParts = gptResponse.split(":\\s*\\n");
-        for (String json : jsonParts) {
-            json = json.trim();
-            if (json.startsWith("{") && json.endsWith("}")) {
-                requestBodies.add(json);
-                System.out.println(json);
+    public List<String> storeTableRowsToList(String testCases) {
+        List<String> testCasesList = Arrays.asList(testCases.split("\n"));
+        return testCasesList;
+    }
 
-            }
+    public String parseTcFromGptResponse(String gptResponse) {
+        ArrayList<String> jsonBodies = new ArrayList<>();
+        Pattern pattern = Pattern.compile("```\\s*(\\{.*?\\})\\s*```", Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(gptResponse);
+        while (matcher.find()) {
+            jsonBodies.add(matcher.group(1).trim());
         }
-        return requestBodies;
+//        System.out.println(jsonBodies);
+        return gptResponse;
     }
 
 }

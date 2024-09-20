@@ -4,13 +4,13 @@ import java.util.List;
 
 public class TestData {
     private String curl;
-    private List<Object> testcases;
+    private List<String> testcases;
 
     // Default constructor
     public TestData() {}
 
     // Parameterized constructor
-    public TestData(String curl, List<Object> testcases) {
+    public TestData(String curl, List<String> testcases) {
         this.curl = curl;
         this.testcases = testcases;
     }
@@ -25,11 +25,11 @@ public class TestData {
     }
 
     // Getter and Setter for testcases
-    public List<Object> getTestcases() {
+    public List<String> getTestcases() {
         return testcases;
     }
 
-    public void setTestcases(List<Object> testcases) {
+    public void setTestcases(List<String> testcases) {
         this.testcases = testcases;
     }
 }

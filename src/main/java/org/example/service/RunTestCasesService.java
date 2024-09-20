@@ -3,6 +3,7 @@ package org.example.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpPut;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
@@ -37,7 +38,7 @@ public class RunTestCasesService {
 
     public static Map<String, String> extractHeaders(String curlCommand) {
         Map<String, String> headers = new HashMap<>();
-        Pattern headerPattern = Pattern.compile("--header\\s+'([^:]+):\\s([^']+)'");
+        Pattern headerPattern = Pattern.compile("(?:-H|--header)\\s+'([^:]+):\\s([^']+)'");
         Matcher matcher = headerPattern.matcher(curlCommand);
         while (matcher.find()) {
             headers.put(matcher.group(1).trim(), matcher.group(2).trim());
@@ -63,7 +64,7 @@ public class RunTestCasesService {
 
     }
 
-    private static void verifyRequestJson(String jsonPayload){
+    private static void verifyRequestJson(String jsonPayload) {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             JsonNode jsonNode = objectMapper.readTree(jsonPayload);
@@ -78,16 +79,16 @@ public class RunTestCasesService {
         verifyRequestJson(request);
         String url = extractUrl(curl);
         Map<String, String> headers = extractHeaders(curl);
+        System.out.println(headers);
         return sendRequest(url, request, headers);
     }
-
 
 
     private static String sendRequest(String url, String requestPayload, Map<String, String> headers) throws IOException {
 //        System.out.println("----------------------send request-----------------------");
 //        System.out.println(requestPayload);
         try (CloseableHttpClient client = HttpClients.createDefault()) {
-            HttpPost postRequest = new HttpPost(url);
+            HttpPut postRequest = new HttpPut(url);
             StringEntity entity = new StringEntity(requestPayload, ContentType.APPLICATION_JSON);
             postRequest.setEntity(entity);
 

@@ -1,8 +1,10 @@
 package org.example.controller;
 
 import com.fasterxml.jackson.databind.util.JSONPObject;
+import org.apache.xmlbeans.impl.xb.ltgfmt.TestCase;
 import org.example.model.request.BotRequest;
 import org.example.model.request.Message;
+import org.example.model.request.TestData;
 import org.example.model.response.BotResponse;
 import org.example.service.ContentService;
 import org.example.service.GenerateTestCasesService;
@@ -58,9 +60,14 @@ public class ApiTCsController {
     @PostMapping(value = "/requestFromCurl")
     public ResponseEntity<?> getRequestFromCurl(@RequestBody String curlRequest) throws IOException, InterruptedException {
         List<String> tcRequestBodies = generateTestCasesService.generateTestCasesForCurl(curlRequest);
+        return ResponseEntity.ok(tcRequestBodies);
+    }
+
+    @PostMapping(value = "/runTestCase")
+    public ResponseEntity<?> generateResponse(@RequestBody TestData testData) throws IOException, InterruptedException {
         List<String> answer = new ArrayList<>();
-        for (int i = 0; i < tcRequestBodies.size(); i++) {
-            String s = runTestCasesService.runTestApi(curlRequest, tcRequestBodies.get(i));
+        for (int i = 0; i < testData.getTestcases().size(); i++) {
+            String s = runTestCasesService.runTestApi(testData.getCurl(), testData.getTestcases().get(i));
             answer.add(s);
         }
 

@@ -131,6 +131,29 @@ public class GenerateTestCasesService {
         return requestBodies;
     }
 
+    public String generateDescriptionForCurl(String curl) {
+        String request = getRequestBodyFromCurl(curl);
+        System.out.println(request);
+        String url = baseUrl + "openai/deployments/" + deploymentName + "/chat/completions";
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
+                .queryParam("api-version", "2023-05-15");
+
+        String urlWithParams = builder.toUriString();
+        StringBuilder sb = new StringBuilder();
+        sb.append("Describe the request body with each node field type and validations.  \n");
+        sb.append(request);
+        BotRequest botRequest = new BotRequest(model,
+                List.of(new Message("system", sb.toString())),
+                maxCompletions,
+                temperature,
+                maxTokens,
+                deploymentName);
+
+        BotResponse response = restTemplate.postForObject(urlWithParams, botRequest, BotResponse.class);
+        String description = response.getChoices().get(0).getMessage().getContent();
+        return description;
+    }
+
     public List<String> storeTableRowsToList(String testCases) {
         List<String> testCasesList = Arrays.asList(testCases.split("\n"));
         return testCasesList;

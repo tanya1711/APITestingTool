@@ -56,6 +56,11 @@ public class ApiTCsController {
     @Autowired
     private ContentService contentService;
 
+    @PostMapping(value = "/generateDescription")
+    public ResponseEntity<?> getDescription(@RequestBody String curlRequest) throws IOException, InterruptedException {
+        String descriptionForCurl = generateTestCasesService.generateDescriptionForCurl(curlRequest);
+        return ResponseEntity.ok(descriptionForCurl);
+    }
 
     @PostMapping(value = "/requestFromCurl")
     public ResponseEntity<?> getRequestFromCurl(@RequestBody String curlRequest) throws IOException, InterruptedException {

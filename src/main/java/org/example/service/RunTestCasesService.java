@@ -48,11 +48,12 @@ public class RunTestCasesService {
 
     public static Map<String, String> extractHeaders(String curlCommand) {
         Map<String, String> headers = new HashMap<>();
-        Pattern headerPattern = Pattern.compile("--header\\s+'([^:]+):\\s([^']+)'");
+        Pattern headerPattern = Pattern.compile("(?:-H|--header)\\s*'([^:]+):\\s*([^']+)'");
         Matcher matcher = headerPattern.matcher(curlCommand);
         while (matcher.find()) {
             headers.put(matcher.group(1).trim(), matcher.group(2).trim());
         }
+        System.out.println("headers "+headers);
         return headers;
     }
 
@@ -86,11 +87,10 @@ public class RunTestCasesService {
     }
 
     public String runTestApi(String curl, String request) throws IOException {
-        System.out.println(curl + "curl");
+        System.out.println("curl");
+        System.out.println(curl);
         verifyRequestJson(request);
         String url = extractUrl(curl);
-        System.out.println(url + "url");
-        //System.out.println(curl);
         String method = extractMethodFromCurl(curl);
         System.out.println(method);
         Map<String, String> headers = extractHeaders(curl);

@@ -75,7 +75,7 @@ public class GenerateTestCasesService {
 
             String urlWithParams = builder.toUriString();
             BotRequest botRequest = new BotRequest(model,
-                    List.of(new Message("system", tcResponse + " from the above table row generate a json request body for this test cases with test case name ")),
+                    List.of(new Message("system", tcResponse + " from the above table row generate a json request body for this test case.")),
                     maxCompletions,
                     temperature,
                     maxTokens,
@@ -89,7 +89,7 @@ public class GenerateTestCasesService {
         }
     }
 
-    public Map<String,String> generateTestCasesForCurl(String curl) {
+    public Map<String, String> generateTestCasesForCurl(String curl) {
         String request = getRequestBodyFromCurl(curl);
         System.out.println(request);
         String url = baseUrl + "openai/deployments/" + deploymentName + "/chat/completions";
@@ -104,7 +104,7 @@ public class GenerateTestCasesService {
         sb.append("For each test case, only one field should be invalid at a time, while all other fields should be valid. This will help isolate which field is causing a failure.");
         sb.append("\nMake sure to cover all positive and negative test cases for thorough testing of the REST API.");
         sb.append("\n\nEach row in the list should represent a unique test case with different values for the fields.");
-        sb.append("\nThe table should have columns for each field, and each row should contain values for all fields in that specific test case and a clear test case name .");
+        sb.append("\nThe table should have columns for the Test Case Name, each field, and for nested objects, use dot notation for proper representation, and each row should contain values for all fields in that specific test case.");
         sb.append("\n\nNote: If I explicitly ask to exclude a specific field, do not generate test cases for it.");
 //        sb.append(" give top 5 test cases");
 
@@ -119,15 +119,14 @@ public class GenerateTestCasesService {
         String testCases = response.getChoices().get(0).getMessage().getContent();
         System.out.println(testCases);
         List<String> rows = storeTableRowsToList(testCases);
-        List<String> requestBodies = new ArrayList<>();
         Map<String, String> requestBodiesMap = new HashMap<>();
         for (int i = 2; i < rows.size(); i++) {
             String s = generateRequestBodiesFromTCs(rows.get(0) + "\n" + rows.get(i));
-            String[] titleBody = s.split("(:\\n|\\|\\n)");
-            if (titleBody.length == 2) {
-                titleBody[1] = titleBody[1].replace("```", "");
-                requestBodiesMap.put(titleBody[0], titleBody[1]);
-            }
+//            System.out.println(s);
+            String tcName = rows.get(i).split("\\|")[0];
+            System.out.println(tcName);
+            System.out.println(s);
+            requestBodiesMap.put(tcName, s);
         }
         System.out.println(requestBodiesMap);
         return requestBodiesMap;

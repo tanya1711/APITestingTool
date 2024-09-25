@@ -75,7 +75,7 @@ public class RunTestCasesService {
 
     }
 
-    private static void verifyRequestJson(String jsonPayload){
+    private static void verifyRequestJson(String jsonPayload) {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             JsonNode jsonNode = objectMapper.readTree(jsonPayload);
@@ -94,6 +94,7 @@ public class RunTestCasesService {
         String method = extractMethodFromCurl(curl);
         System.out.println(method);
         Map<String, String> headers = extractHeaders(curl);
+        System.out.println(headers);
         return sendRequest(url, request, headers, method);
     }
 

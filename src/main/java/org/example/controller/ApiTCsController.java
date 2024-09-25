@@ -22,6 +22,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 public class ApiTCsController {
@@ -64,7 +65,7 @@ public class ApiTCsController {
 
     @PostMapping(value = "/requestFromCurl")
     public ResponseEntity<?> getRequestFromCurl(@RequestBody String curlRequest) throws IOException, InterruptedException {
-        List<String> tcRequestBodies = generateTestCasesService.generateTestCasesForCurl(curlRequest);
+        Map<String, String> tcRequestBodies = generateTestCasesService.generateTestCasesForCurl(curlRequest);
         return ResponseEntity.ok(tcRequestBodies);
     }
 

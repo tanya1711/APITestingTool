@@ -87,7 +87,6 @@ public class GenerateTestCasesService {
             String tcName = rows.get(i).split("\\|")[0];
             System.out.println(tcName);
             System.out.println(s);
-            ValidateJSON.validateAndCorrectJSON(s);
             requestBodiesMap.put(tcName, s);
 //            requestBodiesMap.put(tcName," { "+ s.split("\\{", 2)[1]);
 //            String str = requestBodiesMap.get(tcName);

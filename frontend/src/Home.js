@@ -8,6 +8,7 @@ const Home = () => {
   const [apiData, setApiData] = useState([]);
   const [error, setError] = useState(null);
   const [currentSlide, setCurrentSlide] = useState(1);
+  const [loading, setLoading] = useState(false);
 
   const settings = {
     dots: false,
@@ -32,6 +33,7 @@ const Home = () => {
   const handleSubmit = async () => {
     console.log('cURL:', curl);
     console.log('Description:', description);
+    setLoading(true);
     try {
       const response = await fetch('http://localhost:8090/requestFromCurl', {
         method: 'POST',
@@ -62,7 +64,10 @@ const Home = () => {
     } catch (err) {
       setError(err.message);
       console.error("Error:", err);
-    }
+    }finally {
+           // Set loading to false when the API request finishes
+           setLoading(false);
+         }
   };
 
   const handleInputChange = (id, key, value) => {
@@ -77,7 +82,7 @@ const Home = () => {
   };
 
   return (
-    <div class="outer-container">
+    <div class="outer-container" data-name="Sanity Checker - an AI based tool">
       <div className="home-app-container">
         <div className="curl-section-left">
           <div className="input-container">
@@ -87,9 +92,13 @@ const Home = () => {
               onChange={handleCurlChange}
               placeholder="Enter cURL here"
             />
-            <button className="submit-curl-btn" onClick={handleSubmit}>
-              Submit curl
-            </button>
+           <button
+             className="submit-curl-btn"
+             onClick={handleSubmit}
+             disabled={!curl.trim() || loading} // Disable the button if loading or cURL is empty
+           >
+             {loading ? 'Submitting...' : 'Submit cURL'} {/* Display loader text */}
+           </button>
             <textarea
               className="description-input"
               value={description}

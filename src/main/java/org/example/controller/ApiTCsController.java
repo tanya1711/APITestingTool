@@ -1,10 +1,12 @@
 package org.example.controller;
 
 import com.fasterxml.jackson.databind.util.JSONPObject;
-import org.apache.xmlbeans.impl.xb.ltgfmt.TestCase;
+import org.example.dao.runTestCases.request.RunTestCaseRequest;
+import org.example.dao.runTestCases.request.TestCase;
+import org.example.dao.runTestCases.response.RunTestCaseResponse;
+import org.example.dao.runTestCases.response.TestResult;
 import org.example.model.request.BotRequest;
 import org.example.model.request.Message;
-import org.example.model.request.TestData;
 import org.example.model.response.BotResponse;
 import org.example.service.ContentService;
 import org.example.service.GenerateTestCasesService;
@@ -70,11 +72,20 @@ public class ApiTCsController {
     }
 
     @PostMapping(value = "/runTestCase")
-    public ResponseEntity<?> generateResponse(@RequestBody TestData testData) throws IOException, InterruptedException {
-        List<String> answer = new ArrayList<>();
-        for (int i = 0; i < testData.getTestcases().size(); i++) {
-            String s = runTestCasesService.runTestApi(testData.getCurl(), testData.getTestcases().get(i));
-            answer.add(s);
+    public ResponseEntity<?> generateResponse(@RequestBody RunTestCaseRequest runTestCaseRequest) throws IOException, InterruptedException {
+
+        RunTestCaseResponse runTestCaseResponse = new RunTestCaseResponse();
+        List<TestResult> answer = new ArrayList<>();
+        for (int i = 0; i < runTestCaseRequest.getRequestBodyList().size(); i++) {
+            TestResult testResult = new TestResult();
+            TestCase testCase = runTestCaseRequest.getRequestBodyList().get(i);
+            String s = runTestCasesService.runTestApi(runTestCaseRequest.getCurl(), testCase.getTestRequestBody());
+            testResult.setTcId(testCase.getTcId());
+            System.out.println(s);
+            testResult.setTcResponse(s.split("\\|",2)[1]);
+            testResult.setStatusCode(s.split("\\|",2)[0]);
+
+            answer.add(testResult);
         }
 
         return ResponseEntity.ok(answer);

@@ -122,7 +122,8 @@ public class RunTestCasesService {
                     System.out.println("Response body: " + responseBody);
                     ObjectMapper objectMapper = new ObjectMapper();
                     String value = objectMapper.writeValueAsString(responseBody);
-                    return value;
+
+                    return statusCode+ "|" + value;
                 }
             }
             else {
@@ -146,7 +147,8 @@ public class RunTestCasesService {
                     System.out.println("Response body: " + responseBody);
                     ObjectMapper objectMapper = new ObjectMapper();
                     String value = objectMapper.writeValueAsString(responseBody);
-                    return value;
+                    return statusCode+ "|" + value;
+
                 }
             }
         }

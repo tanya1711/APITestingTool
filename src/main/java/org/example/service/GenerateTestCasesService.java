@@ -5,6 +5,7 @@ import jakarta.servlet.http.PushBuilder;
 import org.example.model.request.BotRequest;
 import org.example.model.request.Message;
 import org.example.model.response.BotResponse;
+import org.example.util.ValidateJSON;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.json.JsonParser;
@@ -49,7 +50,7 @@ public class GenerateTestCasesService {
 
     public String generateRequestBodiesFromTCs(String tcResponse, String requestBody) {
         try {
-            String prompt = tcResponse + " from the above table row generate a json request body for this test case. DataTypes for all the fields are "+requestBody;
+            String prompt = tcResponse + " from the above table row generate a json request body for this test case. DataTypes for all the fields are " + requestBody;
             return botService.getChatGPTResponseForPrompt(prompt);
         } catch (Exception e) {
             System.out.println("Sorry token limit reached!!");
@@ -60,7 +61,9 @@ public class GenerateTestCasesService {
     public Map<String, String> generateTestCasesForCurl(String curl) {
         String request = getRequestBodyFromCurl(curl);
         System.out.println(request);
+
         String dataTypesOfAllFieldsFromRequest = getDataTypesOfAllFieldsFromRequest(request);
+//        String dataTypesOfAllFieldsFromRequest = request;
         StringBuilder sb = new StringBuilder();
         sb.append("Here is a sample JSON request body for the data entry  API.  \n");
         sb.append(request);
@@ -77,12 +80,19 @@ public class GenerateTestCasesService {
         List<String> rows = storeTableRowsToList(testCases);
         Map<String, String> requestBodiesMap = new HashMap<>();
         for (int i = 2; i < rows.size(); i++) {
+
             String s = generateRequestBodiesFromTCs(rows.get(0) + "\n" + rows.get(i), dataTypesOfAllFieldsFromRequest);
 //            System.out.println(s);
             String tcName = rows.get(i).split("\\|")[0];
             System.out.println(tcName);
             System.out.println(s);
+            ValidateJSON.validateAndCorrectJSON(s);
             requestBodiesMap.put(tcName, s);
+//            requestBodiesMap.put(tcName," { "+ s.split("\\{", 2)[1]);
+//            String str = requestBodiesMap.get(tcName);
+//            int lastIndex = str.lastIndexOf('}');
+//            requestBodiesMap.replace(tcName, str.substring(0, lastIndex+1));
+
         }
         System.out.println(requestBodiesMap);
         return requestBodiesMap;
@@ -119,5 +129,6 @@ public class GenerateTestCasesService {
 //        System.out.println(jsonBodies);
         return gptResponse;
     }
+
 
 }

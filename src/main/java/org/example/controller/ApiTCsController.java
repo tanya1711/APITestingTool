@@ -9,7 +9,6 @@ import org.example.model.response.BotResponse;
 import org.example.service.ContentService;
 import org.example.service.GenerateTestCasesService;
 import org.example.service.RunTestCasesService;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +21,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 public class ApiTCsController {
@@ -56,10 +56,15 @@ public class ApiTCsController {
     @Autowired
     private ContentService contentService;
 
+    @PostMapping(value = "/generateDescription")
+    public ResponseEntity<?> getDescription(@RequestBody String curlRequest) throws IOException, InterruptedException {
+        String descriptionForCurl = generateTestCasesService.generateDescriptionForCurl(curlRequest);
+        return ResponseEntity.ok(descriptionForCurl);
+    }
 
     @PostMapping(value = "/requestFromCurl")
     public ResponseEntity<?> getRequestFromCurl(@RequestBody String curlRequest) throws IOException, InterruptedException {
-        List<String> tcRequestBodies = generateTestCasesService.generateTestCasesForCurl(curlRequest);
+        Map<String, String> tcRequestBodies = generateTestCasesService.generateTestCasesForCurl(curlRequest);
         return ResponseEntity.ok(tcRequestBodies);
     }
 

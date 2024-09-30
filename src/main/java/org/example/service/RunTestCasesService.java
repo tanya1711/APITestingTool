@@ -3,6 +3,7 @@ package org.example.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpPut;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
@@ -27,7 +28,7 @@ public class RunTestCasesService {
     private static String url = null;
 
     public static String extractUrl(String curlCommand) {
-        Pattern urlPattern = Pattern.compile("curl\\s+'([^']+)'");
+        Pattern urlPattern = Pattern.compile("curl\\s*'?([^'\\s]+)'?");
         Matcher matcher = urlPattern.matcher(curlCommand);
         if (matcher.find()) {
             return matcher.group(1);
@@ -35,13 +36,24 @@ public class RunTestCasesService {
         return null;
     }
 
+    public static String extractMethodFromCurl(String curlCommand) {
+        if (curlCommand.contains("PUT")) {
+            return "PUT";
+        }
+        // Check if the curl command contains '-d' or '--data' (which indicates POST)
+        else  {
+            return "POST";
+        }
+    }
+
     public static Map<String, String> extractHeaders(String curlCommand) {
         Map<String, String> headers = new HashMap<>();
-        Pattern headerPattern = Pattern.compile("--header\\s+'([^:]+):\\s([^']+)'");
+        Pattern headerPattern = Pattern.compile("(?:-H|--header)\\s*'([^:]+):\\s*([^']+)'");
         Matcher matcher = headerPattern.matcher(curlCommand);
         while (matcher.find()) {
             headers.put(matcher.group(1).trim(), matcher.group(2).trim());
         }
+        System.out.println("headers "+headers);
         return headers;
     }
 
@@ -63,7 +75,7 @@ public class RunTestCasesService {
 
     }
 
-    private static void verifyRequestJson(String jsonPayload){
+    private static void verifyRequestJson(String jsonPayload) {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             JsonNode jsonNode = objectMapper.readTree(jsonPayload);
@@ -75,37 +87,67 @@ public class RunTestCasesService {
     }
 
     public String runTestApi(String curl, String request) throws IOException {
+        System.out.println("curl");
+        System.out.println(curl);
         verifyRequestJson(request);
         String url = extractUrl(curl);
+        String method = extractMethodFromCurl(curl);
+        System.out.println(method);
         Map<String, String> headers = extractHeaders(curl);
-        return sendRequest(url, request, headers);
+        System.out.println(headers);
+        return sendRequest(url, request, headers, method);
     }
 
 
 
-    private static String sendRequest(String url, String requestPayload, Map<String, String> headers) throws IOException {
+    private static String sendRequest(String url, String requestPayload, Map<String, String> headers, String method) throws IOException {
 //        System.out.println("----------------------send request-----------------------");
 //        System.out.println(requestPayload);
         try (CloseableHttpClient client = HttpClients.createDefault()) {
-            HttpPost postRequest = new HttpPost(url);
-            StringEntity entity = new StringEntity(requestPayload, ContentType.APPLICATION_JSON);
-            postRequest.setEntity(entity);
+            if (method.contains("PUT")) {
+                HttpPut putRequest = new HttpPut(url);
+                StringEntity entity = new StringEntity(requestPayload, ContentType.APPLICATION_JSON);
+                putRequest.setEntity(entity);
 
-            // Set headers
-            if (headers != null && !headers.isEmpty()) {
-                for (Map.Entry<String, String> header : headers.entrySet()) {
-                    postRequest.setHeader(header.getKey(), header.getValue());
+                if (headers != null && !headers.isEmpty()) {
+                    for (Map.Entry<String, String> header : headers.entrySet()) {
+                        putRequest.setHeader(header.getKey(), header.getValue());
+                    }
+                }
+
+                try (CloseableHttpResponse response = client.execute(putRequest)) {
+                    int statusCode = response.getCode();
+                    JsonNode responseBody = objectMapper.readTree(response.getEntity().getContent());
+                    System.out.println("Status code: " + statusCode);
+                    System.out.println("Response body: " + responseBody);
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    String value = objectMapper.writeValueAsString(responseBody);
+                    return value;
                 }
             }
+            else {
+                HttpPost postRequest = new HttpPost(url);
+                StringEntity entity = new StringEntity(requestPayload, ContentType.APPLICATION_JSON);
+                postRequest.setEntity(entity);
+                //StringEntity entity = new StringEntity(requestPayload, ContentType.APPLICATION_JSON);
+                // postRequest.setEntity(entity);
 
-            try (CloseableHttpResponse response = client.execute(postRequest)) {
-                int statusCode = response.getCode();
-                JsonNode responseBody = objectMapper.readTree(response.getEntity().getContent());
-                System.out.println("Status code: " + statusCode);
-                System.out.println("Response body: " + responseBody);
-                ObjectMapper objectMapper = new ObjectMapper();
-                String value = objectMapper.writeValueAsString(responseBody);
-                return value;
+                // Set headers
+                if (headers != null && !headers.isEmpty()) {
+                    for (Map.Entry<String, String> header : headers.entrySet()) {
+                        postRequest.setHeader(header.getKey(), header.getValue());
+                    }
+                }
+
+                try (CloseableHttpResponse response = client.execute(postRequest)) {
+                    int statusCode = response.getCode();
+                    JsonNode responseBody = objectMapper.readTree(response.getEntity().getContent());
+                    System.out.println("Status code: " + statusCode);
+                    System.out.println("Response body: " + responseBody);
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    String value = objectMapper.writeValueAsString(responseBody);
+                    return value;
+                }
             }
         }
     }

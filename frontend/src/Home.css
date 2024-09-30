@@ -1,0 +1,218 @@
+.outer-container {
+  background-color: #e0e0e0;
+  padding: 10px;
+}
+.home-app-container {
+  display: flex;
+  justify-content: space-between;
+  width: auto;
+  height: auto;
+  border: 2px solid #ccc;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding-top: 40px;
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-bottom: 20px;
+  margin: 23px;
+}
+.curl-section-left {
+  width: 40%;
+  margin-right: 10px;
+  padding-right: 30px;
+  border-right: 1px solid black;
+}
+.curl-section-right {
+  width: 60%;
+  padding-left: 20px;
+  padding-right: 10px;
+}
+
+.description-input {
+  width: 100%;
+  height: 100px;
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  resize: none;
+  font-family:Verdana, Geneva, Tahoma, sans-serif;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.curl-input {
+  width: 100%;
+  height: 230px;
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  resize: none;
+  font-family:Verdana, Geneva, Tahoma, sans-serif;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.curl-input::-webkit-scrollbar {
+  width: 8px;
+}
+
+.curl-input::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+  border-radius: 10px; 
+}
+
+.curl-input::-webkit-scrollbar-thumb {
+  background: #888; 
+  border-radius: 10px;
+}
+
+.curl-input::-webkit-scrollbar-thumb:hover {
+  background: #555; 
+}
+.submit-btn {
+  padding: 10px 20px;
+  font-size: 14px;
+  background-color: #218838;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  align-self: center;
+  margin-top: 10px;
+  font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+.submit-curl-btn {
+  padding: 10px 20px;
+  font-size: 14px;
+  background-color: #218838;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  align-self: center;
+  margin-bottom: 20px;
+  margin-top: 10px;
+  font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+.input-container {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+.carousel-container {
+  width: auto;
+  margin: 0 auto;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.carousel-card {
+  padding: 20px;
+  background-color: #f9f9f9;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  height: 400px;
+  border-radius: 10px;
+}
+.slick-list {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.slick-slide > div {
+  border-radius: 10px;
+}
+.slick-prev {
+  color: #ff5733;
+  font-size: 24px !important; 
+  background-color: #fff; 
+}
+.slick-next {
+  color: #33c4ff; 
+  font-size: 20px;
+  background-color: #fff;
+}
+
+.slick-prev:before {
+  font-size: 24px !important;
+  color: #ff5733 !important;
+  margin: 0 !important;
+  padding-right: 5px !important;
+  display: grid;
+}
+
+.slick-next:before {
+  font-size: 24px !important;
+  color: #33c4ff !important;
+}
+.checkbox {
+  margin: 0;
+  margin-right: 5px;
+  height: 15px;
+  width: 15px;
+  vertical-align: middle; 
+}
+
+.label-checkbox {
+  font-size: 14px;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  vertical-align: middle;
+}
+.slide-count {
+  margin-top: 10px; 
+  font-size: 12px; 
+  color: #333; 
+  text-align: center;
+}
+.description-list {
+  list-style-type: none;
+  padding-inline: 10px;
+  margin: 0;
+  text-align: left;
+  max-height: 360px;
+  overflow-y: auto;
+  border: 1px solid black;
+  border-radius: 4px;
+}
+.description-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.description-list::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+  border-radius: 10px; 
+}
+
+.description-list::-webkit-scrollbar-thumb {
+  background: #888; 
+  border-radius: 10px;
+}
+
+.description-list::-webkit-scrollbar-thumb:hover {
+  background: #555; 
+}
+.description-item {
+  margin: 10px 0;
+  display: flex;
+  align-items: center;
+}
+
+.description-checkbox {
+  margin-right: 10px;
+}
+
+.key-name {
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.value-input {
+  border: 1px solid #ccc;
+  padding: 5px;
+  flex-grow: 1;
+  border-radius: 4px;
+}
+
+

@@ -1,6 +1,7 @@
 package org.example.controller;
 
 import com.fasterxml.jackson.databind.util.JSONPObject;
+import org.example.dao.runTestCases.CurlAndDescriptionRequest;
 import org.example.dao.runTestCases.request.RunTestCaseRequest;
 import org.example.dao.runTestCases.request.TestCase;
 import org.example.dao.runTestCases.response.RunTestCaseResponse;
@@ -65,8 +66,8 @@ public class ApiTCsController {
     }
 
     @PostMapping(value = "/requestFromCurl")
-    public ResponseEntity<?> getRequestFromCurl(@RequestBody String curlRequest) throws IOException, InterruptedException {
-        Map<String, String> tcRequestBodies = generateTestCasesService.generateTestCasesForCurl(curlRequest);
+    public ResponseEntity<?> getRequestFromCurl(@RequestBody CurlAndDescriptionRequest curlAndDescriptionRequest) throws IOException, InterruptedException {
+        Map<String, String> tcRequestBodies = generateTestCasesService.generateTestCasesForCurl(curlAndDescriptionRequest);
         return ResponseEntity.ok(tcRequestBodies);
     }
 

@@ -17,6 +17,7 @@ const Home = () => {
     slidesToShow: 1,
     slidesToScroll: 1,
     arrows: true,
+    arrows: apiData.length > 0 && !loading,
     afterChange: (current) => setCurrentSlide(current + 1),
   };
 
@@ -144,7 +145,7 @@ const Home = () => {
             </Slider>
           </div>
           <div className="slide-count">
-            {currentSlide} / {apiData.length}
+            {apiData.length > 0 && `${currentSlide} / ${apiData.length}`}
           </div>
         </div>
       </div>

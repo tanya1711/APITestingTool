@@ -113,6 +113,19 @@
   margin-top: 10px;
   font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
 }
+.additional-button {
+  padding: 10px 20px;
+  font-size: 14px;
+  background-color: #218838;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  align-self: center;
+  margin-bottom: 20px;
+  margin-top: 10px;
+  font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
 .input-container {
   display: flex;
   flex-direction: column;
@@ -177,6 +190,7 @@
   font-size: 14px;
   font-family: Verdana, Geneva, Tahoma, sans-serif;
   vertical-align: middle;
+  color:Black;
 }
 .slide-count {
   margin-top: 10px; 
@@ -219,6 +233,7 @@
 
 .description-checkbox {
   margin-right: 10px;
+  color:Black;
 }
 
 .key-name {
@@ -231,6 +246,12 @@
   padding: 5px;
   flex-grow: 1;
   border-radius: 4px;
+}
+
+.home-Bottom-container{
+display: 'flex';
+justifyContent: 'center';
+marginTop: '10px';
 }
 
 

@@ -73,7 +73,6 @@ public class ApiTCsController {
 
     @PostMapping(value = "/runTestCase")
     public ResponseEntity<?> generateResponse(@RequestBody RunTestCaseRequest runTestCaseRequest) throws IOException, InterruptedException {
-
         RunTestCaseResponse runTestCaseResponse = new RunTestCaseResponse();
         List<TestResult> answer = new ArrayList<>();
         for (int i = 0; i < runTestCaseRequest.getRequestBodyList().size(); i++) {
@@ -90,6 +89,4 @@ public class ApiTCsController {
 
         return ResponseEntity.ok(answer);
     }
-
-
 }

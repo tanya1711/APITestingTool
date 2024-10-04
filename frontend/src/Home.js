@@ -9,6 +9,8 @@ const Home = () => {
   const [error, setError] = useState(null);
   const [currentSlide, setCurrentSlide] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [charLimit] = useState(500);
+
 
   const settings = {
     dots: false,
@@ -26,7 +28,10 @@ const Home = () => {
   };
 
   const handleDescriptionChange = (e) => {
-    setDescription(e.target.value);
+    const value = e.target.value;
+    if (value.length <= charLimit) { // Validate against character limit
+      setDescription(value);
+    }
   };
 
   const handleSubmit = async () => {
@@ -100,7 +105,8 @@ const Home = () => {
               className="description-input"
               value={description}
               onChange={handleDescriptionChange}
-              placeholder="Enter description of API here"
+              placeholder="Please enter the description of API here for better response."
+              maxLength={charLimit}
             />
             <button
               className="submit-curl-btn"
@@ -145,7 +151,19 @@ const Home = () => {
             </Slider>
           </div>
           <div className="slide-count">
-            {apiData.length > 0 && `${currentSlide} / ${apiData.length}`}
+            {apiData.length > 0 && (
+              <>
+                {`${currentSlide} / ${apiData.length}`}
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '10px' }}>
+                  <button
+                    className="additional-button"
+                    onClick={() => console.log('Button Clicked!')}
+                  >
+                    Click Me
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>

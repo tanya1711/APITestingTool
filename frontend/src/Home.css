@@ -1,5 +1,6 @@
 .outer-container {
-  background-color: #e0e0e0;
+  background-color: #000; /* Set background to black */
+  color: white; /* Set text color to white */
   padding: 5px;
 }
 

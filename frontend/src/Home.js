@@ -17,9 +17,8 @@ const Home = () => {
     slidesToShow: 1,
     slidesToScroll: 1,
     arrows: true,
+    arrows: apiData.length > 0 && !loading,
     afterChange: (current) => setCurrentSlide(current + 1),
-    //    centerMode: true,
-    //    centerPadding: '10%',
   };
 
   const handleCurlChange = (e) => {
@@ -34,13 +33,19 @@ const Home = () => {
     console.log('cURL:', curl);
     console.log('Description:', description);
     setLoading(true);
+
     try {
+      const requestBody = JSON.stringify({
+        curl: curl,
+        description: description
+      });
+
       const response = await fetch('http://localhost:8090/requestFromCurl', {
         method: 'POST',
         headers: {
-          'Content-Type': 'text/plain',
+          'Content-Type': 'application/json',
         },
-        body: curl
+        body: requestBody
       });
 
       if (!response.ok) {
@@ -59,15 +64,14 @@ const Home = () => {
       }));
       console.log(formattedData);
 
-      setApiData(formattedData); // Store the formatted data in state
+      setApiData(formattedData);
       setError(null); // Clear any previous errors
     } catch (err) {
       setError(err.message);
       console.error("Error:", err);
-    }finally {
-           // Set loading to false when the API request finishes
-           setLoading(false);
-         }
+    } finally {
+      setLoading(false); // Set loading to false when the API request finishes
+    }
   };
 
   const handleInputChange = (id, key, value) => {
@@ -82,7 +86,7 @@ const Home = () => {
   };
 
   return (
-    <div class="outer-container" data-name="Sanity Checker - an AI based tool">
+    <div className="outer-container" data-name="Sanity Checker - an AI based tool">
       <div className="home-app-container">
         <div className="curl-section-left">
           <div className="input-container">
@@ -92,21 +96,18 @@ const Home = () => {
               onChange={handleCurlChange}
               placeholder="Enter cURL here"
             />
-           <button
-             className="submit-curl-btn"
-             onClick={handleSubmit}
-             disabled={!curl.trim() || loading} // Disable the button if loading or cURL is empty
-           >
-             {loading ? 'Submitting...' : 'Submit cURL'} {/* Display loader text */}
-           </button>
             <textarea
               className="description-input"
               value={description}
               onChange={handleDescriptionChange}
               placeholder="Enter description of API here"
             />
-            <button className="submit-btn" onClick={handleSubmit}>
-              Submit Description
+            <button
+              className="submit-curl-btn"
+              onClick={handleSubmit}
+              disabled={!curl.trim() || loading || !description.trim()} // Disable the button if loading or inputs are empty
+            >
+              {loading ? 'Submitting...' : 'Submit cURL and description'} {/* Display loader text */}
             </button>
           </div>
         </div>
@@ -144,7 +145,7 @@ const Home = () => {
             </Slider>
           </div>
           <div className="slide-count">
-            {currentSlide} / {apiData.length}
+            {apiData.length > 0 && `${currentSlide} / ${apiData.length}`}
           </div>
         </div>
       </div>

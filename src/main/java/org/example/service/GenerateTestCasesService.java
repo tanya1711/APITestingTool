@@ -2,6 +2,7 @@ package org.example.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.PushBuilder;
+import org.example.dao.runTestCases.CurlAndDescriptionRequest;
 import org.example.model.request.BotRequest;
 import org.example.model.request.Message;
 import org.example.model.response.BotResponse;
@@ -58,8 +59,9 @@ public class GenerateTestCasesService {
         }
     }
 
-    public Map<String, String> generateTestCasesForCurl(String curl) {
-        String request = getRequestBodyFromCurl(curl);
+    public Map<String, String> generateTestCasesForCurl(CurlAndDescriptionRequest curlAndDescriptionRequest) {
+        String request = getRequestBodyFromCurl(curlAndDescriptionRequest.getCurl());
+        String description = curlAndDescriptionRequest.getDescription();
         System.out.println(request);
 
         String dataTypesOfAllFieldsFromRequest = getDataTypesOfAllFieldsFromRequest(request);
@@ -67,6 +69,7 @@ public class GenerateTestCasesService {
         StringBuilder sb = new StringBuilder();
         sb.append("Here is a sample JSON request body for the data entry  API.  \n");
         sb.append(request);
+        sb.append(description);
         sb.append("\n\nI want you to generate a comprehensive list of all possible values (both valid and invalid) for each field in this JSON request body.");
         sb.append("For each test case, only one field should be invalid at a time, while all other fields should be valid. This will help isolate which field is causing a failure.");
         sb.append("\nMake sure to cover all positive and negative test cases for thorough testing of the REST API.");

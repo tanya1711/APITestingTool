@@ -100,6 +100,4 @@ public class ApiTCsController {
 
         return ResponseEntity.ok(answer);
     }
-
-
 }

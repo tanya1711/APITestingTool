@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import Slider from "react-slick";
 import './Home.css';
+import { createToast } from 'react-simple-toasts';
+import 'react-simple-toasts/dist/style.css';
 
 const Home = () => {
   const [curl, setCurl] = useState('');
@@ -10,7 +12,8 @@ const Home = () => {
   const [currentSlide, setCurrentSlide] = useState(1);
   const [loading, setLoading] = useState(false);
   const [charLimit] = useState(500);
-
+  const [toastMessage, setToastMessage] = useState('');
+  const [formattedResponse, setFormattedResponse] = useState([]);
 
   const settings = {
     dots: false,
@@ -29,14 +32,12 @@ const Home = () => {
 
   const handleDescriptionChange = (e) => {
     const value = e.target.value;
-    if (value.length <= charLimit) { // Validate against character limit
+    if (value.length <= charLimit) {
       setDescription(value);
     }
   };
 
   const handleSubmit = async () => {
-    console.log('cURL:', curl);
-    console.log('Description:', description);
     setLoading(true);
 
     try {
@@ -60,38 +61,113 @@ const Home = () => {
       }
 
       const data = await response.json();
-
-      // Convert the API response to a format usable in cards
-      const formattedData = Object.keys(data).map((key, index) => ({
+      const formattedData = Array.isArray(data) ? data.map((item, index) => ({
         id: index + 1,
-        title: key.replace(/\"/g, ''), // Clean up the key by removing extra quotes
-        description: JSON.stringify(JSON.parse(data[key]), null, 2), // Parse and prettify the JSON data
-      }));
-      console.log(formattedData);
+        title: item.testCaseName || `Test Case ${index + 1}`,
+        description: item.testRequestBody,
+        validJSON: item.validJSON,
+        isSelected: true
+      })) : [{
+        id: 1,
+        title: data.testCaseName || 'Test Case 1',
+        description: data.testRequestBody,
+        validJSON: data.validJSON,
+        isSelected: true
+      }];
 
       setApiData(formattedData);
-      setError(null); // Clear any previous errors
+      setError(null);
     } catch (err) {
       setError(err.message);
       console.error("Error:", err);
     } finally {
-      setLoading(false); // Set loading to false when the API request finishes
+      setLoading(false);
     }
   };
 
-  const handleInputChange = (id, key, value) => {
+  const handleInputChange = (id, value) => {
     const updatedData = apiData.map((item) => {
       if (item.id === id) {
-        const updatedDescription = { ...JSON.parse(item.description), [key]: value };
-        return { ...item, description: JSON.stringify(updatedDescription, null, 2) };
+        return { ...item, description: value };
       }
       return item;
     });
     setApiData(updatedData);
   };
 
+  const handleCheckboxChange = (id) => {
+    const updatedData = apiData.map((item) => {
+      if (item.id === id) {
+        return { ...item, isSelected: !item.isSelected };
+      }
+      return item;
+    });
+    setApiData(updatedData);
+  };
+
+  const handleErrorToast = (errorMessage) => {
+    createToast(errorMessage, {
+      type: 'error', // You can specify different types if needed
+    });
+  };
+
+  const handleRunTestCase = async () => {
+    const selectedTestCases = apiData.filter(item => item.isSelected);
+
+    if (selectedTestCases.length === 0) {
+      console.error("No test cases selected");
+      return;
+    }
+
+    setFormattedResponse([]);
+
+    try {
+      const requestBody = {
+        curl: curl,
+        requestBodyList: selectedTestCases.map(item => ({
+          tcId: item.id.toString(),
+          testRequestBody: item.description
+        }))
+      };
+
+      const response = await fetch('http://localhost:8090/runTestCase', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        const errorMessage = error.message || 'Failed to run test case';
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+      const formattedResponse = data.map(item => {
+        const tcResponse = JSON.parse(item.tcResponse);
+        return {
+          tcId: item.tcId,
+          statusCode: item.statusCode,
+          message: tcResponse.message,
+          validationErrors: tcResponse.validationErrors,
+        };
+      });
+      setFormattedResponse(formattedResponse);
+      console.log('Test case run successfully:', formattedResponse);
+    } catch (err) {
+      console.error("Error running test case:", err.message);
+      setToastMessage("Error running test case");
+      handleErrorToast(err.message);
+    }
+  };
+
   return (
-    <div className="outer-container" data-name="Sanity Checker - an AI based tool">
+    <div className="outer-container">
+      <div className="header">
+        <h1 className='home-home-header'>AI-Powered Sanity Checker</h1>
+      </div>
       <div className="home-app-container">
         <div className="curl-section-left">
           <div className="input-container">
@@ -111,55 +187,49 @@ const Home = () => {
             <button
               className="submit-curl-btn"
               onClick={handleSubmit}
-              disabled={!curl.trim() || loading || !description.trim()} // Disable the button if loading or inputs are empty
+              disabled={!curl.trim() || loading || !description.trim()}
             >
-              {loading ? 'Submitting...' : 'Submit cURL and description'} {/* Display loader text */}
+              {loading ? 'Submitting...' : 'Submit cURL and description'}
             </button>
           </div>
         </div>
         <div className='curl-section-right'>
           <div className="carousel-container">
             <Slider {...settings}>
-              {apiData.map((formattedData) => {
-                const parsedDescription = JSON.parse(formattedData.description);
-                return (
-                  <div key={formattedData.id} className="carousel-card">
-                    <label>
-                      <input type="checkbox" className='checkbox' />
-                      <span className='label-checkbox'>Test Case {formattedData.id}</span>
-                    </label>
-                    <h2>{formattedData.title}</h2>
-                    <ul className="description-list">
-                      {Object.keys(parsedDescription).map((key) => (
-                        <li key={key} className="description-item">
-                          <label>
-                            <input type="checkbox" className="description-checkbox" />
-                            <span className="key-name">{key}:</span>
-                            <input
-                              type="text"
-                              className="value-input"
-                              value={parsedDescription[key]}
-                              onChange={(e) => handleInputChange(formattedData.id, key, e.target.value)}
-                            />
-                          </label>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )
-              })}
+              {apiData.map((formattedData) => (
+                <div key={formattedData.id} className="carousel-card">
+                  <label>
+                    <input
+                      type="checkbox"
+                      className='checkbox'
+                      checked={formattedData.isSelected}
+                      onChange={() => handleCheckboxChange(formattedData.id)}
+                    />
+                    <span className='label-checkbox'>Test Case {formattedData.id}</span>
+                  </label>
+                  <h2 className='home-card-heading'>{formattedData.title}</h2>
+                  <textarea
+                    className="json-editor"
+                    value={formattedData.description}
+                    onChange={(e) => handleInputChange(formattedData.id, e.target.value)}
+                    rows={10}
+                    spellCheck="false"
+                  />
+                </div>
+              ))}
             </Slider>
           </div>
           <div className="slide-count">
             {apiData.length > 0 && (
               <>
                 {`${currentSlide} / ${apiData.length}`}
-                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '10px' }}>
+                <div className='home-Bottom-container'>
                   <button
                     className="additional-button"
-                    onClick={() => console.log('Button Clicked!')}
+                    onClick={handleRunTestCase}
+                    disabled={loading}
                   >
-                    Click Me
+                    {loading ? 'Running...' : 'Submit Requests'}
                   </button>
                 </div>
               </>
@@ -167,6 +237,34 @@ const Home = () => {
           </div>
         </div>
       </div>
+      <hr className="divider" />
+      <div>
+      {formattedResponse.length > 0 && (
+        <div className="response-card">
+          <h2>Test Case Responses</h2>
+          {formattedResponse.map((item) => (
+            <div key={item.tcId} className="response-item card">
+              <h3>Test Case: {item.tcId}</h3>
+              <p>Status Code: {item.statusCode}</p>
+              <p>{item.message}</p>
+              {item.validationErrors && item.validationErrors.length > 0 && (
+                <ul>
+                  {item.validationErrors.map((error, index) => (
+                    <li key={index}>
+                      {error.field}: {error.message}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+      </div>
+
+      {formattedResponse.some(item => item.validationErrors && item.validationErrors.length > 0) &&
+        handleErrorToast("Error running test case")
+      }
     </div>
   );
 };

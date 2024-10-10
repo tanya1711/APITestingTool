@@ -3,6 +3,8 @@ import Slider from "react-slick";
 import './Home.css';
 import { createToast } from 'react-simple-toasts';
 import 'react-simple-toasts/dist/style.css';
+import JSONPretty from 'react-json-pretty';
+
 
 const Home = () => {
   const [curl, setCurl] = useState('');
@@ -10,6 +12,7 @@ const Home = () => {
   const [apiData, setApiData] = useState([]);
   const [error, setError] = useState(null);
   const [currentSlide, setCurrentSlide] = useState(1);
+  const [loadingCurl, setLoadingCurl] = useState(false);
   const [loading, setLoading] = useState(false);
   const [charLimit] = useState(500);
   const [toastMessage, setToastMessage] = useState('');
@@ -26,6 +29,7 @@ const Home = () => {
     afterChange: (current) => setCurrentSlide(current + 1),
   };
 
+
   const handleCurlChange = (e) => {
     setCurl(e.target.value);
   };
@@ -38,7 +42,7 @@ const Home = () => {
   };
 
   const handleSubmit = async () => {
-    setLoading(true);
+    setLoadingCurl(true); // Set curl loading to true
 
     try {
       const requestBody = JSON.stringify({
@@ -81,7 +85,7 @@ const Home = () => {
       setError(err.message);
       console.error("Error:", err);
     } finally {
-      setLoading(false);
+      setLoadingCurl(false); // Set curl loading to false
     }
   };
 
@@ -107,7 +111,7 @@ const Home = () => {
 
   const handleErrorToast = (errorMessage) => {
     createToast(errorMessage, {
-      type: 'error', // You can specify different types if needed
+      type: 'error',
     });
   };
 
@@ -120,6 +124,8 @@ const Home = () => {
     }
 
     setFormattedResponse([]);
+
+    setLoading(true); // Set loading for test cases
 
     try {
       const requestBody = {
@@ -160,6 +166,8 @@ const Home = () => {
       console.error("Error running test case:", err.message);
       setToastMessage("Error running test case");
       handleErrorToast(err.message);
+    } finally {
+      setLoading(false); // Set loading for test cases to false
     }
   };
 
@@ -176,6 +184,7 @@ const Home = () => {
               value={curl}
               onChange={handleCurlChange}
               placeholder="Enter cURL here"
+              spellCheck={false}
             />
             <textarea
               className="description-input"
@@ -183,13 +192,14 @@ const Home = () => {
               onChange={handleDescriptionChange}
               placeholder="Please enter the description of API here for better response."
               maxLength={charLimit}
+              spellCheck={false}
             />
             <button
               className="submit-curl-btn"
               onClick={handleSubmit}
-              disabled={!curl.trim() || loading || !description.trim()}
+              disabled={!curl.trim() || loadingCurl || !description.trim()}
             >
-              {loading ? 'Submitting...' : 'Submit cURL and description'}
+              {loadingCurl ? 'Submitting...' : 'Submit cURL and description'}
             </button>
           </div>
         </div>
@@ -239,29 +249,33 @@ const Home = () => {
       </div>
       <hr className="divider" />
       <div>
-      {formattedResponse.length > 0 && (
-        <div className="response-card">
-          <h2>Test Case Responses</h2>
-          {formattedResponse.map((item) => (
-            <div key={item.tcId} className="response-item card">
-              <h3>Test Case: {item.tcId}</h3>
-              <p>Status Code: {item.statusCode}</p>
-              <p>{item.message}</p>
-              {item.validationErrors && item.validationErrors.length > 0 && (
-                <ul>
-                  {item.validationErrors.map((error, index) => (
-                    <li key={index}>
-                      {error.field}: {error.message}
-                    </li>
-                  ))}
-                </ul>
-              )}
+        {formattedResponse.length > 0 && (
+          <div className='bottom-container'>
+            <h2 className="bottom-header">Test Case Responses</h2>
+            {/* <JSONPretty data={formattedResponse}></JSONPretty> */}
+            <div className="response-carousel-container">
+              <Slider {...settings}>
+                {formattedResponse.map((item) => (
+                  <div key={item.tcId} className="response-item-card">
+                    <h3 className='label-checkbox'>Test Case: {item.tcId}</h3>
+                    <p className='status-code'>Status Code: {item.statusCode}</p>
+                    <p className='response-message'>Message: {item.message}</p>
+                    {/* {item.validationErrors && item.validationErrors.length > 0 && (
+                      <ul>
+                        {item.validationErrors.map((error, index) => (
+                          <li key={index} className='validation-error'>
+                            {error.field}: {error.message}
+                          </li>
+                        ))}
+                      </ul>
+                    )} */}
+                  </div>
+                ))}
+              </Slider>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        )}
       </div>
-
       {formattedResponse.some(item => item.validationErrors && item.validationErrors.length > 0) &&
         handleErrorToast("Error running test case")
       }

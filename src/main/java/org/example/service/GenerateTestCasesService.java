@@ -2,6 +2,7 @@ package org.example.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.PushBuilder;
+import org.example.dao.runTestCases.CurlAndDescriptionRequest;
 import org.example.model.request.BotRequest;
 import org.example.model.request.Message;
 import org.example.model.response.BotResponse;
@@ -11,36 +12,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
 public class GenerateTestCasesService {
 
-    @Value("${openai.model}")
-    private String model;
-
-    @Value("${openai.max-completions}")
-    private int maxCompletions;
-
-    @Value("${openai.temperature}")
-    private double temperature;
-
-    @Value("${openai.max_tokens}")
-    private int maxTokens;
-
-    @Value("${openai.api.baseUrl}")
-    private String baseUrl;
-
-    @Value("${openai.deployment.name}")
-    private String deploymentName;
-
     @Autowired
-    private RestTemplate restTemplate;
-
+    private BotService botService;
 
     public String getRequestBodyFromCurl(String curlCommand) {
         Pattern bodyPattern = Pattern.compile(
@@ -67,66 +47,75 @@ public class GenerateTestCasesService {
     }
 
 
-    public String generateRequestBodiesFromTCs(String tcResponse) {
-        System.out.println(tcResponse);
+    public String generateRequestBodiesFromTCs(String tcResponse, String requestBody) {
         try {
-            String url = baseUrl + "openai/deployments/" + deploymentName + "/chat/completions";
-            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
-                    .queryParam("api-version", "2023-05-15");
-
-            String urlWithParams = builder.toUriString();
-            BotRequest botRequest = new BotRequest(model,
-                    List.of(new Message("system", tcResponse + " from the above table row generate a json request body for this test cases. Here is a sample request body to refer the nodes of API ")),
-                    maxCompletions,
-                    temperature,
-                    maxTokens,
-                    deploymentName);
-
-            BotResponse response = restTemplate.postForObject(urlWithParams, botRequest, BotResponse.class);
-            return response.getChoices().get(0).getMessage().getContent();
+            String prompt = tcResponse + " from the above table row generate a json request body for this test case. DataTypes for all the fields are " + requestBody;
+            return botService.getChatGPTResponseForPrompt(prompt);
         } catch (Exception e) {
             System.out.println("Sorry token limit reached!!");
             return null;
         }
     }
 
-    public List<String> generateTestCasesForCurl(String curl) {
-        String request = getRequestBodyFromCurl(curl);
+    public Map<String, String> generateTestCasesForCurl(CurlAndDescriptionRequest curlAndDescriptionRequest) {
+        String request = getRequestBodyFromCurl(curlAndDescriptionRequest.getCurl());
+        String description = curlAndDescriptionRequest.getDescription();
         System.out.println(request);
-        String url = baseUrl + "openai/deployments/" + deploymentName + "/chat/completions";
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
-                .queryParam("api-version", "2023-05-15");
 
-        String urlWithParams = builder.toUriString();
+        String dataTypesOfAllFieldsFromRequest = getDataTypesOfAllFieldsFromRequest(request);
+//        String dataTypesOfAllFieldsFromRequest = request;
         StringBuilder sb = new StringBuilder();
-        sb.append("Here is a sample JSON request body for the data entry  API. This API is to register a new recruiter to our platform. For every test phoneNumber is equal to 2030219322 and email equal to testrecruiter_12911229@mailsac.com.  \n");
+        sb.append("Here is a sample JSON request body for the data entry  API.  \n");
         sb.append(request);
+        sb.append(description);
         sb.append("\n\nI want you to generate a comprehensive list of all possible values (both valid and invalid) for each field in this JSON request body.");
         sb.append("For each test case, only one field should be invalid at a time, while all other fields should be valid. This will help isolate which field is causing a failure.");
         sb.append("\nMake sure to cover all positive and negative test cases for thorough testing of the REST API.");
         sb.append("\n\nEach row in the list should represent a unique test case with different values for the fields.");
-        sb.append("\nThe table should have columns for each field, and each row should contain values for all fields in that specific test case.");
+        sb.append("\nThe table should have columns for the Test Case Name, each field, and for nested objects, use dot notation for proper representation, and each row should contain values for all fields in that specific test case.");
         sb.append("\n\nNote: If I explicitly ask to exclude a specific field, do not generate test cases for it.");
 //        sb.append(" give top 5 test cases");
 
-        BotRequest botRequest = new BotRequest(model,
-                List.of(new Message("system", sb.toString())),
-                maxCompletions,
-                temperature,
-                maxTokens,
-                deploymentName);
-
-        BotResponse response = restTemplate.postForObject(urlWithParams, botRequest, BotResponse.class);
-        String testCases = response.getChoices().get(0).getMessage().getContent();
+        String testCases = botService.getChatGPTResponseForPrompt(sb.toString());
+        System.out.println(testCases);
         List<String> rows = storeTableRowsToList(testCases);
-        List<String> requestBodies = new ArrayList<>();
+        Map<String, String> requestBodiesMap = new LinkedHashMap<>();
         for (int i = 2; i < rows.size(); i++) {
-            String s = generateRequestBodiesFromTCs(rows.get(0) + "\n" + rows.get(i));
-            requestBodies.add(s);
-//            System.out.println(s);
+            String s = generateRequestBodiesFromTCs(rows.get(0) + "\n" + rows.get(i), dataTypesOfAllFieldsFromRequest);
+            String tcName = rows.get(i).split("\\|")[0];
+            System.out.println(tcName);
+            System.out.println(s);
+            if(!tcName.contains("Valid")) {
+                requestBodiesMap.put(tcName, s);
+            }
         }
-        System.out.println(requestBodies);
-        return requestBodies;
+        for (int i = 2; i < rows.size(); i++) {
+            String s = generateRequestBodiesFromTCs(rows.get(0) + "\n" + rows.get(i), dataTypesOfAllFieldsFromRequest);
+            String tcName = rows.get(i).split("\\|")[0];
+            System.out.println(tcName);
+            System.out.println(s);
+            if(tcName.contains("Valid")) {
+                requestBodiesMap.put(tcName, s);
+            }
+        }
+        System.out.println(requestBodiesMap);
+        return requestBodiesMap;
+    }
+
+    public String generateDescriptionForCurl(String curl) {
+        String request = getRequestBodyFromCurl(curl);
+        System.out.println(request);
+        StringBuilder sb = new StringBuilder();
+        sb.append("Describe the request body with each node field type and validations.  \n");
+        sb.append(request);
+        String description = botService.getChatGPTResponseForPrompt(sb.toString());
+        return description;
+    }
+
+    public String getDataTypesOfAllFieldsFromRequest(String request) {
+        String chatGPTResponseForPrompt = botService.getChatGPTResponseForPrompt(request + " For the provided JSON request body extract all the fields and there field types");
+        System.out.println(chatGPTResponseForPrompt);
+        return chatGPTResponseForPrompt;
     }
 
     public List<String> storeTableRowsToList(String testCases) {
@@ -144,5 +133,6 @@ public class GenerateTestCasesService {
 //        System.out.println(jsonBodies);
         return gptResponse;
     }
+
 
 }

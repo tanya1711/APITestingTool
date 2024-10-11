@@ -74,6 +74,7 @@ public class GenerateTestCasesService {
         sb.append("\n\nEach row in the list should represent a unique test case with different values for the fields.");
         sb.append("\nThe table should have columns for the Test Case Name, each field, and for nested objects, use dot notation for proper representation, and each row should contain values for all fields in that specific test case.");
         sb.append("\n\nNote: If I explicitly ask to exclude a specific field, do not generate test cases for it.");
+
 //        sb.append(" give top 5 test cases");
 
         String testCases = botService.getChatGPTResponseForPrompt(sb.toString());
@@ -85,7 +86,7 @@ public class GenerateTestCasesService {
             String tcName = rows.get(i).split("\\|")[0];
             System.out.println(tcName);
             System.out.println(s);
-            if(!tcName.contains("Valid")) {
+            if (!tcName.contains("Valid")) {
                 requestBodiesMap.put(tcName, s);
             }
         }
@@ -94,12 +95,19 @@ public class GenerateTestCasesService {
             String tcName = rows.get(i).split("\\|")[0];
             System.out.println(tcName);
             System.out.println(s);
-            if(tcName.contains("Valid")) {
-                requestBodiesMap.put(tcName, s);
+            if (tcName.contains("Valid")) {
+                String newS = changingValuesOfRequestBody(s);
+                requestBodiesMap.put(tcName, newS);
             }
         }
         System.out.println(requestBodiesMap);
         return requestBodiesMap;
+    }
+
+    public String changingValuesOfRequestBody(String request) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(request+" Please update all the fields in the provided JSON body with other valid fields.");
+        return botService.getChatGPTResponseForPrompt(sb.toString());
     }
 
     public String generateDescriptionForCurl(String curl) {

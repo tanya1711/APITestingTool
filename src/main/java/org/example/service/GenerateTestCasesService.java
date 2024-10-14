@@ -57,7 +57,7 @@ public class GenerateTestCasesService {
         }
     }
 
-    public Map<String, String> generateTestCasesForCurl(CurlAndDescriptionRequest curlAndDescriptionRequest) {
+    public Map<String, String> generateTestCasesForCurl(CurlAndDescriptionRequest curlAndDescriptionRequest) throws InterruptedException {
         String request = getRequestBodyFromCurl(curlAndDescriptionRequest.getCurl());
         String description = curlAndDescriptionRequest.getDescription();
         System.out.println(request);
@@ -88,22 +88,34 @@ public class GenerateTestCasesService {
         List<String> rows = storeTableRowsToList(testCases);
         Map<String, String> requestBodiesMap = new LinkedHashMap<>();
         for (int i = 2; i < rows.size(); i++) {
+//            Thread.sleep(5000);
             String s = generateRequestBodiesFromTCs(rows.get(0) + "\n" + rows.get(i), dataTypesOfAllFieldsFromRequest);
-            String tcName = rows.get(i).split("\\|")[1].split("\\|")[0];
-            System.out.println(tcName);
-            System.out.println(s);
-            if (!tcName.contains("Valid") || tcName.contains("Invalid")) {
-                requestBodiesMap.put(tcName, s);
+            String tcName = "";
+            if (rows.get(i).charAt(0) == '|') {
+                tcName = rows.get(i).split("\\|")[1].split("\\|")[0];
+            } else {
+                tcName = rows.get(i).split("\\|")[0];
+
             }
-        }
-        for (int i = 2; i < rows.size(); i++) {
-            String s = generateRequestBodiesFromTCs(rows.get(0) + "\n" + rows.get(i), dataTypesOfAllFieldsFromRequest);
-            String tcName = rows.get(i).split("\\|")[1].split("\\|")[0];
             System.out.println(tcName);
             System.out.println(s);
-            if (tcName.contains("Valid")) {
-                String newS = changingValuesOfRequestBody(s);
-                requestBodiesMap.put(tcName, newS);
+//            if (!tcName.contains("Valid") || tcName.contains("Invalid")) {
+            requestBodiesMap.put(tcName, s);
+//            }
+        }
+
+        for (int i = 2; i < rows.size(); i++) {
+            String tcName = "";
+            if (rows.get(i).charAt(0) == '|') {
+                tcName = rows.get(i).split("\\|")[1].split("\\|")[0];
+            } else {
+                tcName = rows.get(i).split("\\|")[0];
+
+            }
+            if (tcName.contains("Valid") && !tcName.contains("Invalid") && requestBodiesMap.containsKey(tcName)) {
+                String s = requestBodiesMap.get(tcName);
+                requestBodiesMap.remove(tcName);
+                requestBodiesMap.put(tcName, changingValuesOfRequestBody(s));
             }
         }
         System.out.println(requestBodiesMap);
@@ -116,12 +128,13 @@ public class GenerateTestCasesService {
         return botService.getChatGPTResponseForPrompt(sb.toString());
     }
 
-    public String generateDescriptionForCurl(String curl) {
+    public String generateDescriptionForCurl(String curl) throws InterruptedException {
         String request = getRequestBodyFromCurl(curl);
         System.out.println(request);
         StringBuilder sb = new StringBuilder();
         sb.append("Describe the request body with each node field type and validations.  \n");
         sb.append(request);
+//        Thread.sleep(5000);
         String description = botService.getChatGPTResponseForPrompt(sb.toString());
         return description;
     }

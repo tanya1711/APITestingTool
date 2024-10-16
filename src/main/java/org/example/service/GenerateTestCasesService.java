@@ -23,9 +23,11 @@ public class GenerateTestCasesService {
     private BotService botService;
 
     public String getRequestBodyFromCurl(String curlCommand) {
-        Pattern bodyPattern = Pattern.compile(
-                "-d\\s+'([^']*)'|-d\\s+\"([^\"]*)\"|--data\\s+'([^']*)'|--data\\s+\"([^\"]*)\"|--data-raw\\s+'([^']*)'|--data-raw\\s+\"([^\"]*)\""
-        );
+        System.out.println("---------------------------------------------------CURLLLL-------------------------------");
+        System.out.println(curlCommand);
+        System.out.println("------------------------------------------------------------------------------------------");
+
+        Pattern bodyPattern = Pattern.compile("-d\\s+'([^']*)'|-d\\s+\"([^\"]*)\"|--data\\s+'([^']*)'|--data\\s+\"([^\"]*)\"|--data-raw\\s+'([^']*)'|--data-raw\\s+\"([^\"]*)\"|--data-raw\\s+\\$'(.*)'", Pattern.DOTALL);
         Matcher matcher = bodyPattern.matcher(curlCommand);
         if (matcher.find()) {
             String body = null;
@@ -83,6 +85,8 @@ public class GenerateTestCasesService {
         sb.append("\n\nEach row in the list should represent a unique test case with different values for all the fields.");
         sb.append("\nThe table should have columns for the Test Case Name and each field. For **nested objects**, use dot notation for proper representation, like company.company and company.jsCompanyId. Each row should contain values for all fields in that specific test case.");
         sb.append("\n\nNote: If I explicitly ask to exclude a specific field, do not generate test cases for it.");
+//        sb.append("\n\nplease consider no limit while creating number of test cases");
+
         String testCases = botService.getChatGPTResponseForPrompt(sb.toString());
         System.out.println(testCases);
         List<String> rows = storeTableRowsToList(testCases);

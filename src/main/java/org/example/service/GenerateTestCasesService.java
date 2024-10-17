@@ -22,6 +22,9 @@ public class GenerateTestCasesService {
     @Autowired
     private BotService botService;
 
+    @Autowired
+    private TestDataService testDataService;
+
     public String getRequestBodyFromCurl(String curlCommand) {
         System.out.println("---------------------------------------------------CURLLLL-------------------------------");
         System.out.println(curlCommand);
@@ -65,17 +68,7 @@ public class GenerateTestCasesService {
         System.out.println(request);
 
         String dataTypesOfAllFieldsFromRequest = getDataTypesOfAllFieldsFromRequest(request);
-//        String dataTypesOfAllFieldsFromRequest = request;
         StringBuilder sb = new StringBuilder();
-//        sb.append("Here is a sample JSON request body for the data entry  API.  \n");
-//        sb.append(request);
-//        sb.append(description);
-//        sb.append("\n\nI want you to generate a comprehensive list of all possible values (both valid and invalid) for each field in this JSON request body.");
-//        sb.append("For each test case, only one field should be invalid at a time, while all other fields should be valid. This will help isolate which field is causing a failure.");
-//        sb.append("\nMake sure to cover all positive and negative test cases for thorough testing of the REST API.");
-//        sb.append("\n\nEach row in the list should represent a unique test case with different values for the fields.");
-//        sb.append("\nThe table should have columns for the Test Case Name, each field, and for nested objects, use dot notation for proper representation, and each row should contain values for all fields in that specific test case.");
-//        sb.append("\n\nNote: If I explicitly ask to exclude a specific field, do not generate test cases for it.");
         sb.append("Here is a sample JSON request body for the data entry API.  \n");
         sb.append(request);
         sb.append(description);
@@ -85,14 +78,12 @@ public class GenerateTestCasesService {
         sb.append("\n\nEach row in the list should represent a unique test case with different values for all the fields.");
         sb.append("\nThe table should have columns for the Test Case Name and each field. For **nested objects**, use dot notation for proper representation, like company.company and company.jsCompanyId. Each row should contain values for all fields in that specific test case.");
         sb.append("\n\nNote: If I explicitly ask to exclude a specific field, do not generate test cases for it.");
-//        sb.append("\n\nplease consider no limit while creating number of test cases");
 
         String testCases = botService.getChatGPTResponseForPrompt(sb.toString());
         System.out.println(testCases);
         List<String> rows = storeTableRowsToList(testCases);
         Map<String, String> requestBodiesMap = new LinkedHashMap<>();
         for (int i = 2; i < rows.size(); i++) {
-//            Thread.sleep(5000);
             String s = generateRequestBodiesFromTCs(rows.get(0) + "\n" + rows.get(i), dataTypesOfAllFieldsFromRequest);
             String tcName = "";
             if (rows.get(i).charAt(0) == '|') {
@@ -101,11 +92,7 @@ public class GenerateTestCasesService {
                 tcName = rows.get(i).split("\\|")[0];
 
             }
-            System.out.println(tcName);
-            System.out.println(s);
-//            if (!tcName.contains("Valid") || tcName.contains("Invalid")) {
             requestBodiesMap.put(tcName, s);
-//            }
         }
 
         for (int i = 2; i < rows.size(); i++) {
@@ -123,7 +110,7 @@ public class GenerateTestCasesService {
             }
         }
         System.out.println(requestBodiesMap);
-        return requestBodiesMap;
+        return testDataService.replaceEmailFromRequestBody(requestBodiesMap);
     }
 
     public String changingValuesOfRequestBody(String request) {
@@ -138,7 +125,6 @@ public class GenerateTestCasesService {
         StringBuilder sb = new StringBuilder();
         sb.append("Describe the request body with each node field type and validations.  \n");
         sb.append(request);
-//        Thread.sleep(5000);
         String description = botService.getChatGPTResponseForPrompt(sb.toString());
         return description;
     }
@@ -152,17 +138,6 @@ public class GenerateTestCasesService {
     public List<String> storeTableRowsToList(String testCases) {
         List<String> testCasesList = Arrays.asList(testCases.split("\n"));
         return testCasesList;
-    }
-
-    public String parseTcFromGptResponse(String gptResponse) {
-        ArrayList<String> jsonBodies = new ArrayList<>();
-        Pattern pattern = Pattern.compile("```\\s*(\\{.*?\\})\\s*```", Pattern.DOTALL);
-        Matcher matcher = pattern.matcher(gptResponse);
-        while (matcher.find()) {
-            jsonBodies.add(matcher.group(1).trim());
-        }
-//        System.out.println(jsonBodies);
-        return gptResponse;
     }
 
 

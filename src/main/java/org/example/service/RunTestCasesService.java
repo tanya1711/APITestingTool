@@ -41,7 +41,7 @@ public class RunTestCasesService {
             return "PUT";
         }
         // Check if the curl command contains '-d' or '--data' (which indicates POST)
-        else  {
+        else {
             return "POST";
         }
     }
@@ -53,7 +53,7 @@ public class RunTestCasesService {
         while (matcher.find()) {
             headers.put(matcher.group(1).trim(), matcher.group(2).trim());
         }
-        System.out.println("headers "+headers);
+        System.out.println("headers " + headers);
         return headers;
     }
 
@@ -99,10 +99,8 @@ public class RunTestCasesService {
     }
 
 
-
     private static String sendRequest(String url, String requestPayload, Map<String, String> headers, String method) throws IOException {
-//        System.out.println("----------------------send request-----------------------");
-//        System.out.println(requestPayload);
+
         try (CloseableHttpClient client = HttpClients.createDefault()) {
             if (method.contains("PUT")) {
                 HttpPut putRequest = new HttpPut(url);
@@ -123,15 +121,12 @@ public class RunTestCasesService {
                     ObjectMapper objectMapper = new ObjectMapper();
                     String value = objectMapper.writeValueAsString(responseBody);
 
-                    return statusCode+ "|" + value;
+                    return statusCode + "|" + value;
                 }
-            }
-            else {
+            } else {
                 HttpPost postRequest = new HttpPost(url);
                 StringEntity entity = new StringEntity(requestPayload, ContentType.APPLICATION_JSON);
                 postRequest.setEntity(entity);
-                //StringEntity entity = new StringEntity(requestPayload, ContentType.APPLICATION_JSON);
-                // postRequest.setEntity(entity);
 
                 // Set headers
                 if (headers != null && !headers.isEmpty()) {
@@ -147,7 +142,7 @@ public class RunTestCasesService {
                     System.out.println("Response body: " + responseBody);
                     ObjectMapper objectMapper = new ObjectMapper();
                     String value = objectMapper.writeValueAsString(responseBody);
-                    return statusCode+ "|" + value;
+                    return statusCode + "|" + value;
 
                 }
             }

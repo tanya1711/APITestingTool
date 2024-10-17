@@ -110,7 +110,7 @@ public class GenerateTestCasesService {
             }
         }
         System.out.println(requestBodiesMap);
-        return testDataService.replaceEmailFromRequestBody(requestBodiesMap);
+        return testDataService.replaceFieldsFromRequestBody(requestBodiesMap);
     }
 
 //    public String changingValuesOfRequestBody(String request) { TODO: WILL BE REMOVED

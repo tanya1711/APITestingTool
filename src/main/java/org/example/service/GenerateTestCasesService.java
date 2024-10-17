@@ -106,18 +106,18 @@ public class GenerateTestCasesService {
             if (tcName.contains("Valid") && !tcName.contains("Invalid") && requestBodiesMap.containsKey(tcName)) {
                 String s = requestBodiesMap.get(tcName);
                 requestBodiesMap.remove(tcName);
-                requestBodiesMap.put(tcName, changingValuesOfRequestBody(s));
+                requestBodiesMap.put(tcName, s);
             }
         }
         System.out.println(requestBodiesMap);
         return testDataService.replaceEmailFromRequestBody(requestBodiesMap);
     }
 
-    public String changingValuesOfRequestBody(String request) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Given the following JSON request body: " + request + " \n\nPlease change all the field values to different valid values, ensuring they follow the same structure and format. Return the modified JSON with new values.");
-        return botService.getChatGPTResponseForPrompt(sb.toString());
-    }
+//    public String changingValuesOfRequestBody(String request) { TODO: WILL BE REMOVED
+//        StringBuilder sb = new StringBuilder();
+//        sb.append("Given the following JSON request body: " + request + " \n\nPlease change all the field values to different valid values, ensuring they follow the same structure and format. Return the modified JSON with new values.");
+//        return botService.getChatGPTResponseForPrompt(sb.toString());
+//    }
 
     public String generateDescriptionForCurl(String curl) throws InterruptedException {
         String request = getRequestBodyFromCurl(curl);

@@ -27,7 +27,7 @@ public class TestDataService {
                             if (fieldName.toLowerCase().contains("email")) {
                                 String username = fieldValue.asText().split("@")[0];
                                 String domain = fieldValue.asText().split("@")[1];
-                                ((ObjectNode) rootNode).put(fieldName, username+"_"+System.currentTimeMillis()+"@"+domain);
+                                ((ObjectNode) rootNode).put(fieldName, username+System.currentTimeMillis()+"@"+domain);
                             }
                     }
                     String updatedJsonString = mapper.writeValueAsString(rootNode);

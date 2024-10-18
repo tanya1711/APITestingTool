@@ -18,12 +18,10 @@ import java.util.Random;
 public class TestDataService {
 
     public Map<String, String> replaceFieldsFromRequestBody(Map<String, String> requestBodiesMap) {
-        replaceEmailFromRequestBody(requestBodiesMap);
-        replacePhoneFromRequestBody(requestBodiesMap);
-        return requestBodiesMap;
+        return replacePhoneFromRequestBody(replaceEmailFromRequestBody(requestBodiesMap));
     }
 
-    public void replaceEmailFromRequestBody(Map<String, String> requestBodiesMap) {
+    public Map<String, String> replaceEmailFromRequestBody(Map<String, String> requestBodiesMap) {
         ObjectMapper mapper = new ObjectMapper();
         requestBodiesMap.forEach((String tcName, String tcBody) -> {
             if (!tcName.toLowerCase().contains("email")) {
@@ -40,28 +38,30 @@ public class TestDataService {
                             ((ObjectNode) rootNode).put(fieldName, username + System.nanoTime() + "@" + domain);
                         }
                     }
-                    String updatedJsonString = mapper.writeValueAsString(rootNode);
+                    String updatedJsonString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(rootNode);
                     requestBodiesMap.replace(tcName, updatedJsonString);
 
                 } catch (Exception e) {
                     System.err.println("Error processing JSON for key: " + tcName + " - " + e.getMessage());
                 }
+
             }
 
         });
+        return requestBodiesMap;
+
     }
 
-    public void replacePhoneFromRequestBody(Map<String, String> requestBodiesMap) {
+    public Map<String, String> replacePhoneFromRequestBody(Map<String, String> requestBodiesMap) {
         ObjectMapper mapper = new ObjectMapper();
         requestBodiesMap.forEach((String tcName, String tcBody) -> {
-            if (!tcName.toLowerCase().contains("phone") ) {
+            if (!tcName.toLowerCase().contains("phone")) {
                 try {
                     JsonNode rootNode = mapper.readTree(tcBody);
                     Iterator<Map.Entry<String, JsonNode>> fields = rootNode.fields();
                     while (fields.hasNext()) {
                         Map.Entry<String, JsonNode> field = fields.next();
                         String fieldName = field.getKey();
-                        JsonNode fieldValue = field.getValue();
                         if (fieldName.toLowerCase().contains("phone") || fieldName.toLowerCase().contains("mobile")) {
                             LocalDateTime now = LocalDateTime.now();
                             DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("ddHH");
@@ -76,7 +76,7 @@ public class TestDataService {
                             ((ObjectNode) rootNode).put(fieldName, phone);
                         }
                     }
-                    String updatedJsonString = mapper.writeValueAsString(rootNode);
+                    String updatedJsonString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(rootNode);
                     requestBodiesMap.replace(tcName, updatedJsonString);
 
                 } catch (Exception e) {
@@ -85,6 +85,8 @@ public class TestDataService {
             }
 
         });
+
+        return requestBodiesMap;
 
     }
 

@@ -441,7 +441,7 @@ const Home = () => {
   return (
     <div className="outer-container">
       <div className="header">
-        <h1 className='home-home-header'>AI Powered Sanity Checker</h1>
+        <h1 className='home-home-header'>AI Powered Testing Tool</h1>
       </div>
       <div className="home-app-container">
         <div className="curl-section-left">

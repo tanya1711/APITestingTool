@@ -28,6 +28,9 @@ const Home = () => {
   const [showFallbackImage, setShowFallbackImage] = useState(false);
   const isButtonDisabled = !curl.trim() || !description.trim() || loadingCurl;
   const [selectedTestCasesData, setSelectedTestCasesData] = useState([]);
+  const [selectedTestCaseData, setSelectedTestCaseData] = useState(null);
+  const [showIndividualTestCase, setShowIndividualTestCase] = useState(false);
+
 
 
   const handleDownloadPDF = () => {
@@ -294,7 +297,7 @@ const Home = () => {
   const handleRunTestCase = async () => {
     setIsResponseShown(true);
     setIsSingleRequest(false);
-
+    setSelectedTestCaseData(null);
     // Filter for selected test cases
     const selectedTestCases = apiData.filter(item => item.isSelected);
 
@@ -366,6 +369,7 @@ const Home = () => {
   const handleIndividualSubmit = async (testCaseId) => {
     setIsSingleRequest(true);
     setIsResponseShown(true);
+    setSelectedTestCasesData([]);
     const testCase = apiData.find(item => item.id === testCaseId);
     console.log(testCase);
 
@@ -374,7 +378,7 @@ const Home = () => {
       setToastMessage("Test case not found");
       return;
     }
-
+    setSelectedTestCaseData(testCase);
     setFormattedResponse([]);
     setLoading(true);
 
@@ -606,16 +610,47 @@ const Home = () => {
                       ref={requestSliderRef}
                       beforeChange={(oldIndex, newIndex) => syncSlide(newIndex)}
                     >
-                      {selectedTestCasesData.map((formattedData) => (
-                        <div key={formattedData.id} className="request-carousel-card">
+                      {selectedTestCaseData ? (
+                        <div key={selectedTestCaseData.id} className="request-carousel-card">
                           <div className="card-header">
                             <label>
-                              <span className="label-checkbox">
-                                Test Case {formattedData.id}
-                              </span>
+                              <span className="label-checkbox">Test Case {selectedTestCaseData.id}</span>
                             </label>
-                            <span
-                              className={
+                            <span className={
+                              selectedTestCaseData.hasUserEdited
+                                ? selectedTestCaseData.isValidJson === false
+                                  ? 'invalid-json-text'
+                                  : 'valid-json-text'
+                                : selectedTestCaseData.validJSON
+                                  ? 'valid-json-text'
+                                  : 'invalid-json-text'
+                            }>
+                              {selectedTestCaseData.hasUserEdited
+                                ? selectedTestCaseData.isValidJson === false
+                                  ? 'Invalid JSON'
+                                  : 'Valid JSON'
+                                : selectedTestCaseData.validJSON
+                                  ? 'Valid JSON'
+                                  : 'Invalid JSON'}
+                            </span>
+                          </div>
+                          <h2 className="home-card-heading">{selectedTestCaseData.title}</h2>
+                          <textarea
+                            className="request-json-editor"
+                            value={selectedTestCaseData.description}
+                            rows={10}
+                            spellCheck="false"
+                            disabled
+                          />
+                        </div>
+                      ) : (
+                        selectedTestCasesData.map((formattedData) => (
+                          <div key={formattedData.id} className="request-carousel-card">
+                            <div className="card-header">
+                              <label>
+                                <span className="label-checkbox">Test Case {formattedData.id}</span>
+                              </label>
+                              <span className={
                                 formattedData.hasUserEdited
                                   ? formattedData.isValidJson === false
                                     ? 'invalid-json-text'
@@ -623,31 +658,32 @@ const Home = () => {
                                   : formattedData.validJSON
                                     ? 'valid-json-text'
                                     : 'invalid-json-text'
-                              }
-                            >
-                              {formattedData.hasUserEdited
-                                ? formattedData.isValidJson === false
-                                  ? 'Invalid JSON'
-                                  : 'Valid JSON'
-                                : formattedData.validJSON
-                                  ? 'Valid JSON'
-                                  : 'Invalid JSON'}
-                            </span>
+                              }>
+                                {formattedData.hasUserEdited
+                                  ? formattedData.isValidJson === false
+                                    ? 'Invalid JSON'
+                                    : 'Valid JSON'
+                                  : formattedData.validJSON
+                                    ? 'Valid JSON'
+                                    : 'Invalid JSON'}
+                              </span>
+                            </div>
+                            <h2 className="home-card-heading">{formattedData.title}</h2>
+                            <textarea
+                              className="request-json-editor"
+                              value={formattedData.description}
+                              rows={10}
+                              spellCheck="false"
+                              disabled
+                            />
                           </div>
-
-                          <h2 className="home-card-heading">{formattedData.title}</h2>
-                          <textarea
-                            className="request-json-editor"
-                            value={formattedData.description}
-                            rows={10}
-                            spellCheck="false"
-                            disabled
-                          />
-                        </div>
-                      ))}
+                        ))
+                      )}
                     </Slider>
                   </div>
                 </div>
+
+
 
 
                 <div className="bottom-container-right">

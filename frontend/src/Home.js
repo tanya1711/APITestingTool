@@ -27,6 +27,7 @@ const Home = () => {
   const responseSliderRef = useRef(null);
   const [showFallbackImage, setShowFallbackImage] = useState(false);
   const isButtonDisabled = !curl.trim() || !description.trim() || loadingCurl;
+  const [selectedTestCasesData, setSelectedTestCasesData] = useState([]);
 
 
   const handleDownloadPDF = () => {
@@ -289,10 +290,12 @@ const Home = () => {
 
     return null;
   }
+
   const handleRunTestCase = async () => {
     setIsResponseShown(true);
     setIsSingleRequest(false);
 
+    // Filter for selected test cases
     const selectedTestCases = apiData.filter(item => item.isSelected);
 
     if (selectedTestCases.length === 0) {
@@ -300,6 +303,9 @@ const Home = () => {
       setToastMessage("No test cases selected");
       return;
     }
+
+    // Set the selected test cases data for left container rendering
+    setSelectedTestCasesData(selectedTestCases);
 
     setFormattedResponse([]);
     setLoading(true);
@@ -319,8 +325,6 @@ const Home = () => {
           testRequestBody: item.description
         }))
       };
-
-
 
       const response = await fetch('http://localhost:8090/runTestCase', {
         method: 'POST',
@@ -349,7 +353,6 @@ const Home = () => {
 
       setFormattedResponse(formattedResponse);
       console.log('Test case run successfully:', formattedResponse);
-
 
     } catch (err) {
       console.error("Error running test case:", err.message);
@@ -504,6 +507,7 @@ const Home = () => {
               <Slider {...settingsRequest}>
                 {apiData.map((formattedData) => (
                   <div key={formattedData.id} className="carousel-card">
+                    {console.log('Test Case ID:', formattedData.id)}
                     <div className="card-header">
                       <label>
                         <input
@@ -602,7 +606,7 @@ const Home = () => {
                       ref={requestSliderRef}
                       beforeChange={(oldIndex, newIndex) => syncSlide(newIndex)}
                     >
-                      {apiData.map((formattedData) => (
+                      {selectedTestCasesData.map((formattedData) => (
                         <div key={formattedData.id} className="request-carousel-card">
                           <div className="card-header">
                             <label>

@@ -715,9 +715,9 @@ const Home = () => {
                       ))}
                     </Slider>
                   </div>
-                  <button className="floating-download-btn" onClick={handleDownloadPDF}>
-                    Download PDF
-                  </button>
+//                  <button className="floating-download-btn" onClick={handleDownloadPDF}>
+//                    Download PDF
+//                  </button>
                 </div>
               </div>
             )}
